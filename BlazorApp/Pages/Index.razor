@@ -1,0 +1,139 @@
+@page "/"
+@using MyView
+@using System.Globalization
+@using System.Text.RegularExpressions
+@inject IJSRuntime JsRuntime
+@inject IController Controller
+
+<PageTitle>Simple Calculator</PageTitle>
+
+<h1>Simple Calculator</h1>
+<div>
+    <p>
+        This calculator has 4 operations (+, -, x, /) and accepts numbers with up to 8 digits for both 'x' and 'y'.
+    </p>
+</div>
+
+<div>
+    <label for="x">x</label>
+    <input id="x" type="text" 
+        @bind:event="onchange"
+        @bind:get="x"
+        @bind:set="(string e) => {x = CheckTypo(e); onchange();}" />
+    <label for="y">y</label>
+    <input id="y" type="text"
+        @bind:event="onchange"
+        @bind:get="y"
+        @bind:set="(string e) => {y = CheckTypo(e); onchange();}" />
+</div>
+
+<div>
+    <button @onclick='() => handler("+")' disabled="@Disabled">+</button>
+    <button @onclick='() => handler("-")' disabled="@Disabled">-</button>
+    <button @onclick='() => handler("*")' disabled="@Disabled">*</button>
+    <button @onclick='() => handler("/")' disabled="@(Disabled | DivideZero)">/</button>
+</div>
+
+<div>
+    Result : @result
+</div>
+
+<div>
+@if(history.Length != 0)
+{
+    <p>History</p>
+    <ol reversed>
+    @foreach (History data in history)
+    {
+        <li>
+            @data.Formula @data.Result.ToString("#,0.########", CultureInfo.InvariantCulture)
+        </li>
+    }
+    </ol>
+}
+</div>
+
+@code {
+    private History[] history = new History[0];
+    private string x = "";
+    private string y = "";
+    private string result = "";
+    private bool Disabled = true;
+    private bool DivideZero = true;
+
+    private async void handler(string op)
+    {
+        try
+        {
+            double anwser = Controller.GetAnwser(Double.Parse(x), Double.Parse(y), op);
+            anwser = Math.Round(anwser, 8);
+            result = anwser.ToString("#,0.########", CultureInfo.InvariantCulture);
+            loadhistory();
+        }
+        catch (Exception e)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", e.Message);
+        }
+        x = "";
+        y = "";
+        onchange();
+    }
+
+    private void loadhistory()
+    {
+        history = Controller.GetHistory();
+
+        history = history.Select(x => {
+            string formula = "";
+            string[] split = x.Formula.Split(" ");
+            split[0] = Double.Parse(split[0]).ToString("#,0.########", CultureInfo.InvariantCulture);
+            split[2] = Double.Parse(split[2]).ToString("#,0.########", CultureInfo.InvariantCulture);
+            formula = String.Join(" ", split);
+            return new History(formula, Math.Round(x.Result, 8));
+        }).ToArray();
+        Array.Reverse(history);
+    }
+
+    private void onchange() {
+        if (x == "" | y == "") {
+            Disabled = true;
+        }
+        else {
+            Disabled = false;
+        }
+        if (y == "0") {
+            DivideZero = true;
+        }
+        else {
+            DivideZero = false;
+        }
+    }
+
+    private string CheckTypo(string s)
+    {
+        s = Regex.Replace(s, ",", "");
+        s = Regex.Match(s, "[0-9\\.\\-]*").Value;
+        s = Regex.Replace(s, "(?<!^)-+", "");
+        if (Regex.Match(s, "\\..*\\.").Success)
+        {
+            string[] split = s.Split(".");
+            split[0] = split[0] + ".";
+            s = String.Join("", split);
+        }
+        s = Regex.Replace(s, "\\.$", "");
+        s = Regex.Replace(s, "(?<=[0-9]{8})[0-9]*", "");
+        s = Regex.Replace(s, "(?<=[0-9]\\.[0-9]{8})[0-9]*", "");
+        if (s == "")
+        {
+            return s;
+        }
+
+        string result = Double.Parse(s).ToString("#,0.########", CultureInfo.InvariantCulture);
+        return result;
+    }
+
+    protected override void OnInitialized()
+    {
+        loadhistory();
+    }
+}
