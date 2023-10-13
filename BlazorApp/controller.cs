@@ -16,7 +16,7 @@ public class Controller: IController {
     }
 
     public double GetAnwser(double x, double y, string op) {
-        string formula = String.Format("{0:#.########} {1} {2:#.########}", x, op, y);
+        string formula = String.Format("{0:#0.########} {1} {2:#0.########}", x, op, y);
         double anwser = Simple.Execute(formula);
         return anwser;
     }

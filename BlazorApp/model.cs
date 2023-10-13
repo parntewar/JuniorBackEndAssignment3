@@ -115,7 +115,7 @@ public class SimpleCalculator: ICalculator {
         }
         string[] numbers = x.Split(".");
         if (numbers[0].Length > 8) throw new InvalidDataException("Digits more than 8.");
-        numbers[1] = Math.Round(Double.Parse("0." + numbers[1]), 8).ToString("#.########");
+        numbers[1] = Math.Round(Double.Parse("0." + numbers[1]), 8).ToString("#0.########");
         numbers[1] = numbers[1].Split(".")[1];
         return Double.Parse(numbers[0] + "." + numbers[1]);
     }

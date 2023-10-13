@@ -9,10 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-var H = new MemoryHistory();
-var S = new SimpleCalculator(H);
-var C = new Controller(S);
-builder.Services.AddSingleton<IController>(C);
+var MyHistory = new MemoryHistory();
+var MySimpleCalculator = new SimpleCalculator(MyHistory);
+var MyController = new Controller(MySimpleCalculator);
+builder.Services.AddSingleton<IController>(MyController);
 
 var app = builder.Build();
 

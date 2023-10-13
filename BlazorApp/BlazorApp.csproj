@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-	<RazorLanguageVersion>7</RazorLanguageVersion>
+	<RazorLanguageVersion>7.0</RazorLanguageVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
